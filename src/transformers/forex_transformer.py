@@ -1,8 +1,14 @@
+from src.transformers.base_transformer import BaseTransformer
 import pandas as pd
 
-def transform(data: dict):
-    quotes = data["quotes"]
-    df = pd.DataFrame.from_dict(data=quotes, orient="index")
-    df.index = pd.to_datetime(df.index)
-    df = df.astype(float)
-    return df
+class ForexTransformer(BaseTransformer):
+    def __init__(self):
+        pass
+    def transform(self, data: dict) -> pd.DataFrame:
+        self.logger.info(f"Started Forex transformation.")
+        quotes = data["quotes"]
+        df = pd.DataFrame.from_dict(data=quotes, orient="index").reset_index().rename(columns={"index": "date"})
+        df = self._apply_basic_cleaning(df=df)
+        df = self._convert_columns_to_float(df=df)
+        self.logger.info(f"Succesfully transformed {len(df)} forex rows.")
+        return df

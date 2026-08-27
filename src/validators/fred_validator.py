@@ -1,5 +1,4 @@
 from src.validators.base_validator import BaseValidator
-from datetime import datetime
 
 class FredValidator(BaseValidator):
     def validate(self, data: dict):
