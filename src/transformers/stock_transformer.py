@@ -1,8 +1,10 @@
 from src.transformers.base_transformer import BaseTransformer
 import pandas as pd
+import logging
 
 class StockTransformer(BaseTransformer):
-    def __init__(self, symbol: str, currency: str):
+    def __init__(self, symbol: str, currency: str, logger: logging.Logger):
+        super().__init__(logger)
         self.symbol = symbol
         self.currency = currency
     def transform(self, data: dict) -> pd.DataFrame:

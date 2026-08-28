@@ -1,9 +1,10 @@
 from src.transformers.base_transformer import BaseTransformer
 import pandas as pd
-import numpy as np
+import logging
 
 class PipelineTransformer(BaseTransformer):
-    def __init__(self, df_fred: pd.DataFrame, df_stocks: pd.DataFrame, df_forex: pd.DataFrame):
+    def __init__(self, df_fred: pd.DataFrame, df_stocks: pd.DataFrame, df_forex: pd.DataFrame, logger: logging.Logger):
+        super.__init__(logger)
         self.df_fred = df_fred
         self.df_stocks = df_stocks
         self.df_forex = df_forex

@@ -1,9 +1,10 @@
 from src.transformers.base_transformer import BaseTransformer
 import pandas as pd
+import logging
 
 class ForexTransformer(BaseTransformer):
-    def __init__(self):
-        pass
+    def __init__(self, logger: logging.Logger):
+        super().__init__(logger)
     def transform(self, data: dict) -> pd.DataFrame:
         self.logger.info(f"Started Forex transformation.")
         quotes = data["quotes"]
