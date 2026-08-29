@@ -1,8 +1,10 @@
 from src.transformers.base_transformer import BaseTransformer
 import pandas as pd
+import logging
 
-class FredTransformer(BaseTransformer):
-    def __init__(self, series_id: str):
+class MacroTransformer(BaseTransformer):
+    def __init__(self, series_id: str, logger: logging.Logger):
+        super().__init__(logger)
         self.series_id = series_id
         
     def transform(self, data: dict) -> pd.DataFrame:

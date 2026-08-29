@@ -1,0 +1,102 @@
+settings:
+  start_date: "2010-01-01"
+  base_currency: "EUR"
+
+forex:
+  symbols: "USD,RON,PLN,EUR"
+
+macro_indicators:
+  - series_id: "BAMLH0A0HYM2"
+    name: "us_hy_spread"
+    country: "USA"
+    params: { frequency: "d", units: "lin" }
+  - series_id: "BAMLHE00EHYIOAS"
+    name: "euro_hy_spread"
+    country: "EU"
+    params: { frequency: "d", units: "lin" }
+  - series_id: "IRLTLT01DEM156N"
+    name: "germany_10y"
+    country: "Germany"
+    params: { frequency: "d" }
+  - series_id: "IRLTLT01FRM156N"
+    name: "france_10y"
+    country: "France"
+    params: { frequency: "d" }
+  - series_id: "IRLTLT01PLM156N"
+    name: "poland_10y"
+    country: "Poland"
+    params: { frequency: "d" }
+  - series_id: "IRLTLT01ROM156N"
+    name: "romania_10y"
+    country: "Romania"
+    params: { frequency: "d" }
+  - series_id: "DGS10"
+    name: "us_10y"
+    country: "USA"
+    params: { frequency: "d" }
+  - series_id: "DGS2"
+    name: "us_2y"
+    country: "USA"
+    params: { frequency: "d" }
+  - series_id: "ECBDFR"
+    name: "ecb_rate"
+    country: "EU"
+    params: { frequency: "d" }
+  - series_id: "DFF"
+    name: "fed_funds_daily"
+    country: "USA"
+    params: { frequency: "d" }
+  - series_id: "CP0000DEM086NEST"
+    name: "germany_inflation"
+    country: "Germany"
+    params: { frequency: "m", units: "pc1" }
+  - series_id: "CP0000ROM086NEST"
+    name: "romania_inflation"
+    country: "Romania"
+    params: { frequency: "m", units: "pc1" }
+  - series_id: "UNRATE"
+    name: "us_unemployment"
+    country: "USA"
+    params: { frequency: "m" }
+  - series_id: "GDPC1"
+    name: "us_real_gdp"
+    country: "USA"
+    params: { frequency: "q" }
+
+equities:
+  - symbol: "GDAXI"
+    name: "DAX"
+    country: "Germany"
+    currency: "EUR"
+  - symbol: "FCHI"
+    name: "CAC40"
+    country: "France"
+    currency: "EUR"
+  - symbol: "WIG20"
+    name: "WIG20"
+    country: "Poland"
+    currency: "PLN"
+  - symbol: "BET"
+    name: "BET"
+    country: "Romania"
+    currency: "RON"
+  - symbol: "SPX"
+    name: "SP500"
+    country: "USA"
+    currency: "USD"
+  - symbol: "SAP"
+    name: "SAP_SE"
+    country: "Germany"
+    currency: "EUR"
+  - symbol: "LVMH"
+    name: "LVMH"
+    country: "France"
+    currency: "EUR"
+  - symbol: "PKO"
+    name: "PKO_Bank"
+    country: "Poland"
+    currency: "PLN"
+  - symbol: "SNP"
+    name: "Petrom"
+    country: "Romania"
+    currency: "RON"

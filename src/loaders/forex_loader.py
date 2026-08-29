@@ -9,17 +9,20 @@ class ForexLoader(BaseLoader):
 
     def load(self, df_forex: pd.DataFrame):
         query = """
-                    INSERT INTO forex_rates (date, currency_pair, rate)
+                    INSERT INTO forex_rates (date, base_currency, quote_currency, rate)
                     VALUES %s
-                    On CONFLICT (date, currency_pair)
+                    On CONFLICT (date, base_currency, quote_currency)
                     DO UPDATE SET
                         rate = EXCLUDED.rate
                 """
-        df_melted = df_forex.melt(
-            id_vars=['date'],
-            var_name="currency_pair",
-            value_name="rate"
-        )
-        data_list = list(df_melted.itertuples(index=False, name=None))
+        data_list = [
+                (
+                    row.date,
+                    row.base_currency,
+                    row.quote_currency,
+                    row.rate
+                )
+                for row in df_forex.itertuples(index=False)
+            ]
         self._execute_bulk_insert(query=query, data_list=data_list)
         self.logger.info(f"Loaded {len(df_forex)} forex rate rows")

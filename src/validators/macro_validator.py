@@ -1,6 +1,6 @@
 from src.validators.base_validator import BaseValidator
 
-class FredValidator(BaseValidator):
+class MacroValidator(BaseValidator):
     def validate(self, data: dict):
         observations = data["observations"]
         elements_list = ["realtime_start", "realtime_end", "date"]

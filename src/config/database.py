@@ -18,10 +18,11 @@ def create_tables():
                 """
                 CREATE TABLE IF NOT EXISTS macro_data (
                     date DATE,
+                    series_id TEXT,
                     country TEXT,
                     indicator_name TEXT,
                     value NUMERIC,
-                    PRIMARY KEY (date, country, indicator_name)
+                    PRIMARY KEY (date, series_id)
                 );
                 """
             )
@@ -36,6 +37,8 @@ def create_tables():
                     low NUMERIC,
                     close NUMERIC,
                     volume NUMERIC,
+                    currency TEXT,
+                    price_eur NUMERIC,
                     PRIMARY KEY (date, symbol)
                 );
                 """
@@ -44,9 +47,10 @@ def create_tables():
                 """
                 CREATE TABLE IF NOT EXISTS forex_rates (
                     date DATE,
-                    currency_pair TEXT,
+                    base_currency TEXT,
+                    quote_currency TEXT,
                     rate NUMERIC,
-                    PRIMARY KEY (date, currency_pair)
+                    PRIMARY KEY (date, base_currency, quote_currency)
                 )
                 """
             )

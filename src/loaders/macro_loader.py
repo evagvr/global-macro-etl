@@ -3,7 +3,7 @@ import pandas as pd
 from src.config.database import get_connection
 import logging
 
-class FredLoader(BaseLoader):
+class MacroLoader(BaseLoader):
     def __init__(self, country: str, indicator_name: str, series_id: str, logger: logging.Logger):
         super().__init__(logger)
         self.country = country
@@ -12,16 +12,19 @@ class FredLoader(BaseLoader):
 
     def load(self, df_fred: pd.DataFrame):
         query = """
-                    INSERT INTO macro_data (date, country, indicator_name, value)
+                    INSERT INTO macro_data (date, series_id, country, indicator_name, value)
                     VALUES %s
-                    ON CONFLICT (date, country, indicator_name)
+                    ON CONFLICT (date, series_id)
                     DO UPDATE SET
-                        value = EXCLUDED.value
+                        value = EXCLUDED.value,
+                        country = EXCLUDED.country,
+                        indicator_name = EXCLUDED.indicator_name
                 """
         
         data_list = [
             (
                 row.date,
+                self.series_id,
                 self.country,
                 self.indicator_name,
                 getattr(row, self.series_id.lower())
