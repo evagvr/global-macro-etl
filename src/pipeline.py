@@ -120,8 +120,8 @@ class ETLPipeline:
             except Exception as e:
                 self.logger.warning(f"Request for equity: {equity['name']} failed with error {e}")
                 continue
-        
-    def _calculate_price_eur(self, row) -> float:
+    @staticmethod
+    def _calculate_price_eur(row: pd.DataFrame) -> float:
         if row["currency"].upper() != "EUR":
             currency = row["currency"]
             price = row["close"]

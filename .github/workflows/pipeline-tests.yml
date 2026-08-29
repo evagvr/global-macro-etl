@@ -1,0 +1,33 @@
+name: Global Macro ETL Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    env:
+      PYTHONPATH: .
+      POSTGRES_USER: dummy
+      POSTGRES_PASSWORD: dummy
+      POSTGRES_DB: dummy
+
+      FRED_API_KEY: dummy
+      TWELVE_DATA_API_KEY: dummy
+      EXCHANGERATE_ACCESS_KEY: dummy
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest
