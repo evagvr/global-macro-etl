@@ -18,6 +18,7 @@ class ForexValidator(BaseValidator):
             if row_empty_fields:
                 clean = False
                 validation_results["empty_fields"].append(row)
+                continue
             for key, field in row.items():
                 if key == "date":
                     if not self.is_valid_date(info="quotes", date_str=field):

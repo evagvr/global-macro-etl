@@ -16,6 +16,7 @@ class MacroValidator(BaseValidator):
             if row_empty_fields:
                 clean = False
                 validation_results["empty_fields"].append(row)
+                continue
             for element_name in elements_list:
                 if not self.is_valid_date(info="observations", date_str=row[element_name]):
                     clean = False

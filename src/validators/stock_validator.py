@@ -17,6 +17,7 @@ class StockValidator(BaseValidator):
             if row_empty_fields:
                 clean = False
                 validation_results["empty_fields"].append(row)
+                continue
             if not self.is_valid_date(info="values", date_str=row["datetime"]):
                 clean = False
                 validation_results["invalid_datetime"].append(row["datetime"])
