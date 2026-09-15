@@ -16,8 +16,8 @@ class ForexTransformer(BaseTransformer):
                     var_name="currency_pair",
                     value_name="rate"
                 )
-        df["base_currency"] = df["currency_pair"].str[:3].upper()
-        df["quote_currency"] = df["currency_pair"].str[3:].upper()
+        df["base_currency"] = df["currency_pair"].str[:3].str.upper()
+        df["quote_currency"] = df["currency_pair"].str[3:].str.upper()
         df = df.drop(columns=["currency_pair"])
         self.logger.info(f"Succesfully transformed {len(df)} forex rows.")
         return df
