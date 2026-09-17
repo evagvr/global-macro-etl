@@ -6,5 +6,6 @@ class StockExtractor(BaseExtractor):
         params["symbol"] = symbol
         params["interval"] = "1day"
         params["apikey"] = self.api_key
-        params.update(kwargs=kwargs)
+        params["outputsize"] = 5000
+        params.update(kwargs)
         return self._make_request(params=params)

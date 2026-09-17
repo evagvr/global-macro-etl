@@ -1,7 +1,7 @@
 import pandas as pd
 import logging
 
-class BaseTransformer:
+class BasePreprocessor:
     def __init__(self, logger: logging.Logger):
         self.logger = logger
 

@@ -4,12 +4,13 @@ from src.extractors.forex_extractor import ForexExtractor
 from src.validators.macro_validator import MacroValidator
 from src.validators.stock_validator import StockValidator
 from src.validators.forex_validator import ForexValidator
-from src.transformers.macro_transformer import MacroTransformer
-from src.transformers.stock_transformer import StockTransformer
-from src.transformers.forex_transformer import ForexTransformer
+from src.preprocessors.macro_preprocessor import MacroPreprocessor
+from src.preprocessors.stock_preprocessor import StockPreprocessor
+from src.preprocessors.forex_preprocessor import ForexPreprocessor
 from src.loaders.macro_loader import MacroLoader
 from src.loaders.stock_loader import StockLoader
 from src.loaders.forex_loader import ForexLoader
+from src.loaders.country_loader import CountryLoader
 from src.config.settings import settings
 from src.utils.logger import get_logger
 import os
@@ -17,8 +18,9 @@ import yaml
 import logging
 from datetime import datetime
 import pandas as pd
+import time
 
-class ETLPipeline:
+class Pipeline:
     def __init__(self, config_path: str="config.yaml"):
         self.logger = get_logger("ETLPipeline")
         with open(config_path, "r") as f:
@@ -51,25 +53,38 @@ class ETLPipeline:
     def run(self):
         self.logger.info(f"Processing forex.")
         try:
-            raw_data = self.forex_extractor.get_series(start_date=self.config["settings"]["start_date"], end_date=datetime.now().strftime('%Y-%m-%d'), currencies=self.config["forex"]["symbols"])
+            self.logger.info("Syncing country metadata to dim_countries.")
+            try:
+                countries_data = [
+                    {"country": eq["country"], "macro_region": eq["macro_region"]}
+                    for eq in self.config["equities"]
+                ]
+                df_countries = pd.DataFrame(countries_data).drop_duplicates()
+                country_loader = CountryLoader(logger=self.logger)
+                country_loader.load(df_countries)
+            except Exception as e:
+                self.logger.error(f"Failed to populate dim_countries: {e}")
+                return
+    
+            raw_data = self.forex_extractor.get_series(start_date=self.config["settings"]["start_date"], end_date=datetime.now().strftime('%Y-%m-%d'), currencies=self.config["forex"]["symbols"], base_currency=self.config["settings"]["base_currency"])
             if len(raw_data["quotes"]) == 0:
                 self.logger.error("Request for forex returned empty dataset.")
                 return
             validations_results = self.forex_validator.validate(data=raw_data)
             if len(validations_results["clean_rows"]) * 0.1 > len(raw_data["quotes"]) - len(validations_results["clean_rows"]):
                 cleaned_data = validations_results["clean_rows"]
-                transformer = ForexTransformer(logger=self.logger)
-                forex_df = transformer.transform(data=cleaned_data)
-                forex_to_eur = forex_df[forex_df["quote_currency"] == "EUR"]
-                forex_wide = forex_to_eur.pivot(index="date", columns="base_currency", values="rate").reset_index()
+                preprocessor = ForexPreprocessor(logger=self.logger)
+                forex_df = preprocessor.preprocess(data=cleaned_data)
                 loader = ForexLoader(logger=self.logger)
                 loader.load(df_forex=forex_df)
             else:
                 self.logger.error(f"The dataset obtained for forex had too many invalid/empty fields")
                 return
         except Exception as e:
+            self.logger.error(f"Request for forex failed with error: {e}")
             self.logger.error("Request for forex returned empty dataset")
             return
+        
         for indicator in self.config["macro_indicators"]:
             self.logger.info(f"Processing macro indicator: {indicator['name']}")
             try:
@@ -80,16 +95,17 @@ class ETLPipeline:
                 validations_results = self.macro_validator.validate(data=raw_data)
                 if len(validations_results["clean_rows"]) * 0.1 > len(raw_data["observations"]) - len(validations_results["clean_rows"]):
                     cleaned_data = validations_results["clean_rows"]
-                    transformer = MacroTransformer(series_id=indicator["series_id"], logger=self.logger)
-                    transformed_data = transformer.transform(data=cleaned_data)
+                    preprocessor = MacroPreprocessor(series_id=indicator["series_id"], logger=self.logger)
+                    preprocessed_data = preprocessor.preprocess(data=cleaned_data)
                     loader = MacroLoader(country=indicator["country"], indicator_name=indicator["name"], series_id=indicator["series_id"], logger=self.logger)
-                    loader.load(df_fred=transformed_data)
+                    loader.load(df_fred=preprocessed_data)
                 else:
                     self.logger.warning(f"The dataset obtained for macro indicator: {indicator['name']} had too many invalid/empty rows.")
                     continue
             except Exception as e:
                 self.logger.warning(f"Request for macro indicator: {indicator['name']} failed with error {e}")
                 continue
+
         for equity in self.config["equities"]:
             self.logger.info(f"Processing equity: {equity['name']}")
             try:
@@ -100,37 +116,14 @@ class ETLPipeline:
                 validations_results = self.stock_validator.validate(data=raw_data)
                 if (len(validations_results["clean_rows"]) * 0.1 > len(raw_data["values"]) - len(validations_results["clean_rows"])):
                     cleaned_data = validations_results["clean_rows"]
-                    transformer = StockTransformer(symbol=equity["symbol"], currency=equity["currency"], logger=self.logger)
-                    transformed_data = transformer.transform(data=cleaned_data)
-                    temp_df = pd.merge_asof(
-                        transformed_data.sort_values("date"), 
-                        forex_wide.sort_values("date"), 
-                        on="date"
-                    )
-                    temp_df["price_eur"] = temp_df.apply(
-                                self._calculate_price_eur,
-                                axis=1
-                            )
-                    temp_df = temp_df.dropna()
+                    preprocessor = StockPreprocessor(symbol=equity["symbol"], currency=equity["currency"], logger=self.logger)
+                    preprocessed_data = preprocessor.preprocess(data=cleaned_data)
                     loader = StockLoader(symbol=equity["symbol"], country=equity["country"], currency=equity["currency"], logger=self.logger)
-                    loader.load(df_stock=temp_df)
+                    loader.load(df_stock=preprocessed_data)
                 else:
                     self.logger.warning(f"The dataset obtained for equity: {equity['name']} had too many invalid/empty rows.")
                     continue
             except Exception as e:
                 self.logger.warning(f"Request for equity: {equity['name']} failed with error {e}")
                 continue
-    @staticmethod
-    def _calculate_price_eur(row: pd.Series) -> float:
-        if row["currency"].upper() != "EUR":
-            currency = row["currency"]
-            price = row["close"]
-            if currency.upper() not in row.index:
-                return None     
-            if pd.isna(row[currency.upper()]):
-                return None
-            else:
-                rate_to_eur = row[currency.upper()]
-                price_eur = price * rate_to_eur
-                return price_eur
-        return row["close"]
+            time.sleep(10)

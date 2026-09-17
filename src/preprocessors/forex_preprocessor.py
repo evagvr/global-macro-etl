@@ -1,14 +1,13 @@
-from src.transformers.base_transformer import BaseTransformer
+from src.preprocessors.base_preprocessor import BasePreprocessor
 import pandas as pd
 import logging
 
-class ForexTransformer(BaseTransformer):
+class ForexPreprocessor(BasePreprocessor):
     def __init__(self, logger: logging.Logger):
         super().__init__(logger)
-    def transform(self, data: dict) -> pd.DataFrame:
-        self.logger.info(f"Started Forex transformation.")
-        quotes = data["quotes"]
-        df = pd.DataFrame.from_dict(data=quotes, orient="index").reset_index().rename(columns={"index": "date"})
+    def preprocess(self, data: list) -> pd.DataFrame:
+        self.logger.info(f"Started Forex preprocessation.")
+        df = pd.DataFrame(data=data)
         df = self._apply_basic_cleaning(df=df)
         df = self._convert_columns_to_float(df=df)
         df = df.melt(
@@ -19,5 +18,5 @@ class ForexTransformer(BaseTransformer):
         df["base_currency"] = df["currency_pair"].str[:3].str.upper()
         df["quote_currency"] = df["currency_pair"].str[3:].str.upper()
         df = df.drop(columns=["currency_pair"])
-        self.logger.info(f"Succesfully transformed {len(df)} forex rows.")
+        self.logger.info(f"Succesfully preprocessed {len(df)} forex rows.")
         return df

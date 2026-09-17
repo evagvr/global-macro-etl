@@ -20,13 +20,12 @@ class StockLoader(BaseLoader):
                 row.low, 
                 row.close, 
                 row.volume,
-                self.currency,
-                row.price_eur
+                self.currency
             ) 
             for row in df_stock.itertuples(index=False)
         ]
         query = """
-                    INSERT INTO stock_prices (date, symbol, country, open, high, low, close, volume, currency, price_eur)
+                    INSERT INTO stock_prices (date, symbol, country, open, high, low, close, volume, currency)
                     VALUES %s
                     ON CONFLICT (date, symbol)
                     DO UPDATE SET 
@@ -36,8 +35,7 @@ class StockLoader(BaseLoader):
                         low = EXCLUDED.low, 
                         close = EXCLUDED.close, 
                         volume = EXCLUDED.volume,
-                        currency = EXCLUDED.currency,
-                        price_eur = EXCLUDED.price_eur
+                        currency = EXCLUDED.currency
                 """
         self._execute_bulk_insert(query=query, data_list=data_list)
         self.logger.info(f"Loaded {len(df_stock)} stock price rows")
